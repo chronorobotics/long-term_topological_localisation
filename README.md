@@ -44,10 +44,21 @@ For quick testing, download the [Stromovka-FreLoc](https://drive.google.com/open
  
 #### Compilation 
 
-The project requires <i>openCV</i>, and it was tested with openCV version 2.4.8.
+The project requires <i>openCV</i>, and it was tested with openCV version 3.2.
 The project compilation is Makefile-based, so simply `cd src` to the <i>src</i> folder and call `make`.
 If successful, the <b>bin</b> folder should contain the <b>fremen</b> binary.
 To adjust to the partular dataset, change the <i>timeQuantum</i> variable in <b>main/fremen.cpp</b>.
+
+#### OpenCV issues
+
+In case you are getting into trouble with `xfeatures2d.hpp`, you might need to recompile openCV.
+1. Create a folder to perform the compilation and switch to it: `mkdir ~/opencv;cd ~/opencv`
+1. Download opencv: `git clone -b 3.4 --single-branch https://github.com/opencv/opencv.git`
+1. Download opencv-contrib: `git clone -b 3.4 --single-branch https://github.com/opencv/opencv_contrib.git`
+1. Go to opencv folder, create a build folder and switch to it: `mkdir opencv/build;cd opencv/build`
+1. Tell opencv to compile with the contrib: `cmake -DOPENCV_ENABLE_NONFREE:BOOL=ON -DOPENCV_EXTRA_MODULES_PATH=~/opencv/opencv_contrib/modules ~/opencv/opencv`
+1. Compile it: `make -j5`.
+1. Install it: `sudo make install`
 
 #### Build the spatio-temporal models 
 
