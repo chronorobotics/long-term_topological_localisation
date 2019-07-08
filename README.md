@@ -96,6 +96,14 @@ Finally, you can call the script
 and the <i>stromovka/summary</i> folder will contain the results of the localization for different FreMEn orders in text format and as a graph in <i>xfig</i>, <i>png</i> and <i>pdf</i>.
 The graph <i>stromovka/summary/error.pdf</i> should look like the Figure 3 of [[2](#references)].
 
+### Troubleshoting
+
+<b>opencv2/xfeatures2d.hpp not found</b> Please, see the section <i>OpenCV issues</i> above.
+
+<b>/usr/bin/ld: final link failed</b> Try ``make clean``. If that doesn't help, make sure that all ``*.o`` were removed. If you find any though, delete them. After that, try it again.
+
+<b>../bin/fremen: error while loading shared libraries: libopencv_highgui.so.3.4: cannot open shared object file: No such file or directory</b> Try ``sudo ldconfig -v`` and launch it again.
+
 ###References
 1. T.Krajnik, J.P.Fentanes, O.M.Mozos, T.Duckett, J.Ekekrantz, M.Hanheide: <b>[Long-term topological localisation for service robots in dynamic environments using spectral maps.](http://raw.githubusercontent.com/wiki/gestom/fremen/papers/fremen_2014_IROS.pdf)</b> In proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2014. [[bibtex](http://raw.githubusercontent.com/wiki/gestom/fremen/papers/fremen_2014_IROS.bib)]
 2. T.Krajnik, J.P.Fentanes, J.Santos, K.Kusumam, T.Duckett: <b>[FreMEn: Frequency Map Enhancement for Long-Term Mobile Robot Autonomy in Changing Environments.](http://raw.githubusercontent.com/wiki/gestom/fremen/papers/fremen_2015_ICRA_VPRCE.pdf)</b> In proceedings of the ICRA Workshop on Visual Place Recognition in Changing Environments (VPRiCE), 2014. [[bibtex](http://raw.githubusercontent.com/wiki/gestom/fremen/papers/fremen_2015_ICRA_VPRCE.bib)]
