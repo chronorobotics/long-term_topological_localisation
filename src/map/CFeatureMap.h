@@ -6,10 +6,13 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <opencv2/core.hpp>
+#include <opencv2/features2d.hpp>
+#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
-#include <opencv2/nonfree/features2d.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/highgui.hpp>
+
+
 /*#include "CFrelement.h"
 #include "CPerGaM.h"
 #include "CTimeAdaptiveHist.h"
@@ -22,6 +25,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace cv::xfeatures2d;
 
 //matching restrictions
 #define VERTICAL_LIMIT 50

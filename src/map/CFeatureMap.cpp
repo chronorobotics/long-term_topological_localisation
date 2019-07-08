@@ -162,11 +162,12 @@ void CFeatureMap::fremenTest()
 int CFeatureMap::extract(Mat img,int number)
 {
 	//for Binary descriptors (BRIEF,BRISK), set the L2_NORM in CFeatureMap.h to false, for real valued descriptors, set the L2_NORM to true
-	StarFeatureDetector detector(45,0,10,8,5);
-	BriefDescriptorExtractor extractor;
+	//StarFeatureDetector detector(45,0,10,8,5);
+	Ptr<AgastFeatureDetector> detector = AgastFeatureDetector::create(45);
+	Ptr<BriefDescriptorExtractor> descriptor = BriefDescriptorExtractor::create();
 
 	imagePositions.clear();
-	detector.detect(img,  imagePositions);
+	detector->detect(img,  imagePositions);
 	if (imagePositions.size() > number)
 	{
 		std::sort(imagePositions.begin(),imagePositions.end(),compareResponse);
@@ -176,7 +177,7 @@ int CFeatureMap::extract(Mat img,int number)
 	{
 		std::sort(imagePositions.begin(),imagePositions.end(),compareResponse);
 	}
-	extractor.compute(img,  imagePositions, imageDescriptors);
+	descriptor->compute(img,  imagePositions, imageDescriptors);
 	//detector.compute(img,  imagePositions, imageDescriptors);
 	//printf("Features: %ld\n",imagePositions.size());
 	return imagePositions.size();
