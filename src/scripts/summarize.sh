@@ -8,7 +8,7 @@ if [ ! -e $GRAPHS ]; then mkdir $GRAPHS;fi
 if [ ! -e $SUMMARY ]; then mkdir $SUMMARY;fi
 
 for i in $(seq 0 6);do 
-grep Overall $REPORTS/*$i.txt|sed s/.*reports.//|sed s/\-.*\://  |sed s/^5\ .*// >$SUMMARY/$i.txt;
+grep -ir Overall $REPORTS/*$i.txt|sed s/.*reports.//|sed s/\-.*\://  |sed s/^5\ .*// >$SUMMARY/$i.txt;
 done;
 
 gnuplot -e "map='$SUMMARY/'" scripts/plot.gnu >$SUMMARY/error.fig
