@@ -44,10 +44,21 @@ For quick testing, download the [Stromovka-FreLoc](https://drive.google.com/open
  
 #### Compilation 
 
-The project requires <i>openCV</i>, and it was tested with openCV version 2.4.8.
+The project requires <i>openCV</i>, and it was tested with openCV version 3.2.
 The project compilation is Makefile-based, so simply `cd src` to the <i>src</i> folder and call `make`.
 If successful, the <b>bin</b> folder should contain the <b>fremen</b> binary.
 To adjust to the partular dataset, change the <i>timeQuantum</i> variable in <b>main/fremen.cpp</b>.
+
+#### OpenCV issues
+
+In case you are getting into trouble with `xfeatures2d.hpp`, you might need to recompile openCV.
+1. Create a folder to perform the compilation and switch to it: `mkdir ~/opencv;cd ~/opencv`
+1. Download opencv: `git clone -b 3.4 --single-branch https://github.com/opencv/opencv.git`
+1. Download opencv-contrib: `git clone -b 3.4 --single-branch https://github.com/opencv/opencv_contrib.git`
+1. Go to opencv folder, create a build folder and switch to it: `mkdir opencv/build;cd opencv/build`
+1. Tell opencv to compile with the contrib: `cmake -DOPENCV_ENABLE_NONFREE:BOOL=ON -DOPENCV_EXTRA_MODULES_PATH=~/opencv/opencv_contrib/modules ~/opencv/opencv`
+1. Compile it: `make -j5`.
+1. Install it: `sudo make install`
 
 #### Build the spatio-temporal models 
 
@@ -84,6 +95,14 @@ Finally, you can call the script
 
 and the <i>stromovka/summary</i> folder will contain the results of the localization for different FreMEn orders in text format and as a graph in <i>xfig</i>, <i>png</i> and <i>pdf</i>.
 The graph <i>stromovka/summary/error.pdf</i> should look like the Figure 3 of [[2](#references)].
+
+### Troubleshoting
+
+<b>opencv2/xfeatures2d.hpp not found</b> Please, see the section <i>OpenCV issues</i> above.
+
+<b>/usr/bin/ld: final link failed</b> Try ``make clean``. If that doesn't help, make sure that all ``*.o`` were removed. If you find any though, delete them. After that, try it again.
+
+<b>../bin/fremen: error while loading shared libraries: libopencv_highgui.so.3.4: cannot open shared object file: No such file or directory</b> Try ``sudo ldconfig -v`` and launch it again.
 
 ###References
 1. T.Krajnik, J.P.Fentanes, O.M.Mozos, T.Duckett, J.Ekekrantz, M.Hanheide: <b>[Long-term topological localisation for service robots in dynamic environments using spectral maps.](http://raw.githubusercontent.com/wiki/gestom/fremen/papers/fremen_2014_IROS.pdf)</b> In proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2014. [[bibtex](http://raw.githubusercontent.com/wiki/gestom/fremen/papers/fremen_2014_IROS.bib)]
