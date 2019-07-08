@@ -38,7 +38,7 @@ Just fork of clone this repository: `https://github.com/gestom/long-term_topolog
 #### Dataset
 
 You need to get a relevant dataset to test with.
-There are two datasets that we tested our software with, the [Witham Wharf RGB-D](http://lcas.lincoln.ac.uk/owncloud/shared/datasets) and the [Stromovka-FreLoc](https://drive.google.com/open?id=0B7TY_9FitfdlNEtYdTJHd0VJNm8).
+There are two datasets that we tested our software with, the [Witham Wharf RGB-D](https://lcas.lincoln.ac.uk/owncloud/shared/datasets) and the [Stromovka-FreLoc](https://drive.google.com/open?id=0B7TY_9FitfdlNEtYdTJHd0VJNm8).
 You will need to download them if you want to test the software by repeating the experiments of [[1,2](#references)].
 For quick testing, download the [Stromovka-FreLoc](https://drive.google.com/open?id=0B7TY_9FitfdlNEtYdTJHd0VJNm8) and unzip it in the <i>src</i> folder.
  
