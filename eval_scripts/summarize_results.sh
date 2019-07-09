@@ -62,7 +62,6 @@ do
 done
 create_graph |dot -Tpdf >$d.pdf
 
-#convert -density 200 $d.pdf -trim -bordercolor white $d.png 
 pdftoppm $d.pdf $d -png -r 200
 convert $d-1.png -trim -bordercolor white $d.png
 extend_figure $d.png
@@ -78,7 +77,6 @@ do
 done
 gnuplot draw_summary.gnu >graphs.fig
 fig2dev -Lpdf graphs.fig graphs.pdf
-#convert -density 200 graphs.pdf -trim -resize 500x400 graphs.png
 pdftoppm graphs.pdf graphs -png -r 200
 convert graphs-1.png -trim -resize 500x400 graphs.png
 extend_figure graphs.png 
