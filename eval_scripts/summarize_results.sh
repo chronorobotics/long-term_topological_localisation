@@ -37,7 +37,9 @@ function create_graph
 }
 
 REPORTS=../data/$d/reports
-rm best.txt
+if [ -f best.txt ]; then
+	rm best.txt
+fi
 grep -v '#' ../src/models/test_models.txt |tr -d '!' >models.tmp
 #cat ../src/models/test_models.txt |tr -d '#' >models.tmp
 for model in $(cut -f 1 -d ' ' models.tmp)
