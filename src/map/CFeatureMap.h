@@ -22,6 +22,7 @@
 #include "CTimeNone.h"
 #include "CTimeMean.h"*/
 #include "CTemporal.h"
+#include "CExpectation.h"
 
 using namespace std;
 using namespace cv;
@@ -76,6 +77,7 @@ class CFeatureMap
 		vector<DMatch> matches;
 
 		CTemporal** temporalArray;
+		CExpectation* cem_model;
 		int numFeatures;
 		int numPics;	
 		int totalPics;

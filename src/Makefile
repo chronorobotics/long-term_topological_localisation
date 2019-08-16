@@ -6,7 +6,7 @@ SUBDIRS+=main
 
 OBJS=$(wildcard ../obj/*.o)
 LXXLIBS+=-lpython2.7 
-LXXLIBS+=-L/usr/local/lib -g `pkg-config opencv --libs`
+LXXLIBS+=-L/usr/local/lib -g -lgsl -lcblas `pkg-config opencv --libs`
 
 # SEARCH 
 

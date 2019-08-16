@@ -1,4 +1,6 @@
 #include "CFeatureMap.h" 
+#include <string>
+#include <vector>
 
 bool compareResponse(const KeyPoint &a,const KeyPoint &b)
 {
@@ -16,6 +18,7 @@ CFeatureMap::CFeatureMap(int numImages)
 	totalPics = numImages;
 	numPics = 0;
 	temporalArray = NULL;
+	cem_model = NULL;
 	times = Mat::zeros(1,totalPics,CV_32SC1);
 }
 
@@ -25,6 +28,9 @@ CFeatureMap::~CFeatureMap()
 	{
 		//TODOfor (int i = 0;i<visibility.rows;i++) delete temporalArray[i];
 		free(temporalArray);
+	}
+	if (cem_model) {
+		delete cem_model;
 	}
 }
 
@@ -156,7 +162,11 @@ int CFeatureMap::drawCurrentMatches(Mat img1,Mat img2)
 
 void CFeatureMap::fremenTest()
 {
-	for (int i=0;i<visibility.cols;i++)printf("%i %f %i\n",visibility.at<char>(0,i),temporalArray[0]->estimate(i*600),temporalArray[0]->estimate(i*600)>0.5);
+	if (temporalArray) {
+		for (int i=0;i<visibility.cols;i++)printf("%i %f %i\n",visibility.at<char>(0,i),temporalArray[0]->estimate(i*600),temporalArray[0]->estimate(i*600)>0.5);
+	} else {
+		printf("Trhni si nohou!");
+	}
 }
 
 int CFeatureMap::extract(Mat img,int number)
@@ -220,20 +230,34 @@ void CFeatureMap::temporalise(const char* model,int order)
 	float *signal = (float*)calloc(visibility.cols,sizeof(float));
 	unsigned int *timeArray = (unsigned int*)calloc(visibility.cols,sizeof(unsigned int));
 
-	temporalArray = (CTemporal**) calloc(visibility.rows,sizeof(CTemporal*));
-	for (int j=0;j<visibility.cols;j++) timeArray[j] = times.at<uint32_t>(0,j);
-	for (int i=0;i<visibility.rows;i++)
-	{
-		for (int j=0;j<visibility.cols;j++) signal[j] = visibility.at<char>(i,j);
-		float sumka = 0;
-		for (int j=0;j<totalPics;j++) sumka+=visibility.at<char>(i,j);
+	if (std::string(model) == "HyT-CEM") {
+		cem_model = new CExpectation(order, visibility.rows);
+		for (int j=0;j<visibility.cols;j++) timeArray[j] = times.at<uint32_t>(0,j);
+		for (int i = 0; i < totalPics; ++i) {
+			std::vector<bool> v;
+			for (int j = 0; j < visibility.rows; ++j) {
+				v.push_back(visibility.at<char>(j, i));
+			}
+			cem_model->add_v(timeArray[i], v);
+		}
+		cem_model->update(order);
+		if (debug) cem_model->print();
+	} else {
+		temporalArray = (CTemporal**) calloc(visibility.rows,sizeof(CTemporal*));
+		for (int j=0;j<visibility.cols;j++) timeArray[j] = times.at<uint32_t>(0,j);
+		for (int i=0;i<visibility.rows;i++)
+		{
+			for (int j=0;j<visibility.cols;j++) signal[j] = visibility.at<char>(i,j);
+			float sumka = 0;
+			for (int j=0;j<totalPics;j++) sumka+=visibility.at<char>(i,j);
 
-		/*traning model*/
-		temporalArray[i] = spawnTemporalModel(model,86400,order,1); 
-		for (int j=0;j<totalPics;j++) temporalArray[i]->add(timeArray[j],signal[j]);
-		temporalArray[i]->update(order,timeArray,signal,totalPics);
-		if (i%1000 == 0) printf("Feature %i out of %i\n",i,visibility.rows);
-		if (debug) temporalArray[i]->print();
+			/*traning model*/
+			temporalArray[i] = spawnTemporalModel(model,86400,order,1);
+			for (int j=0;j<totalPics;j++) temporalArray[i]->add(timeArray[j],signal[j]);
+			temporalArray[i]->update(order,timeArray,signal,totalPics);
+			if (i%1000 == 0) printf("Feature %i out of %i\n",i,visibility.rows);
+			if (debug) temporalArray[i]->print();
+		}
 	}
 	free(signal);
 	free(timeArray);
@@ -272,12 +296,22 @@ float CFeatureMap::predictThreshold(unsigned int time,float threshold)
 {
 	currentPositions.clear();
 	currentDescriptors.resize(0,0);
-	for (int i = 0;i<globalPositions.size();i++)
-	{
-		if (temporalArray[i]->estimate(time) > threshold)
+	if (cem_model) {
+		std::vector<float> estimation = cem_model->estimate_v(time);
+		for (int i = 0; i < globalPositions.size(); i++) {
+			if (estimation[i] > threshold) {
+				currentPositions.push_back(globalPositions[i]);
+				currentDescriptors.push_back(globalDescriptors.row(i));
+			}
+		}
+	} else {
+		for (int i = 0;i<globalPositions.size();i++)
 		{
-			currentPositions.push_back(globalPositions[i]);
-			currentDescriptors.push_back(globalDescriptors.row(i));
+			if (temporalArray[i]->estimate(time) > threshold)
+			{
+				currentPositions.push_back(globalPositions[i]);
+				currentDescriptors.push_back(globalDescriptors.row(i));
+			}
 		}
 	}
 	return currentPositions.size();
@@ -287,9 +321,17 @@ float CFeatureMap::predictThreshold(unsigned int time,float threshold)
 float CFeatureMap::predictNumber(unsigned int time,int number)
 {
 	currentPositions = globalPositions;
-	for (int i = 0;i<currentPositions.size();i++){
-		currentPositions[i].class_id = i;
-		currentPositions[i].angle = temporalArray[i]->estimate(time);//+0.000001*(random()%1000); //required to randomize features with identical probabilities;
+	if (cem_model) {
+		std::vector<float> estimation = cem_model->estimate_v(time);
+		for (int i = 0;i<currentPositions.size();i++){
+			currentPositions[i].class_id = i;
+			currentPositions[i].angle = estimation[i];
+		}
+	} else {
+		for (int i = 0;i<currentPositions.size();i++){
+			currentPositions[i].class_id = i;
+			currentPositions[i].angle = temporalArray[i]->estimate(time);//+0.000001*(random()%1000); //required to randomize features with identical probabilities;
+		}
 	}
 	if (currentPositions.size()<number) number = currentPositions.size();
 	std::sort(currentPositions.begin(),currentPositions.end(),compareAngle);
@@ -305,7 +347,11 @@ float CFeatureMap::predictNumber(unsigned int time,int number)
 
 void CFeatureMap::print()
 {
-	for (int i=0;i<visibility.rows;i++) temporalArray[i]->print();
+	if (cem_model) {
+		cem_model->print();
+	} else {
+		for (int i=0;i<visibility.rows;i++) temporalArray[i]->print();
+	}
 }
 
 
@@ -380,6 +426,7 @@ void CFeatureMap::save(const char* name)
 	storage << "Descriptors" << globalDescriptors;
 	storage << "Visibility" << visibility;
 	storage << "Times" << times;
+	storage << "Is_CEM" << bool(cem_model);
 	if (temporalArray!= NULL)
 	{
 		double exportArray[MAX_TEMPORAL_MODEL_SIZE];
@@ -397,6 +444,15 @@ void CFeatureMap::save(const char* name)
 			if (i == 5) temporalArray[i]->print(true);
 		}
 		storage << "Temporal" << temporal;
+	} else if (cem_model) {
+		double exportArray[MAX_TEMPORAL_MODEL_SIZE];
+		cv::Mat temporal;
+		if (debug) cem_model->print();
+		int size = cem_model->exportToArray(exportArray,MAX_TEMPORAL_MODEL_SIZE);
+		cv::Mat len(1,1,CV_64F,size);
+		temporal.push_back(len);
+		cv::Mat fM = cv::Mat(size, 1,CV_64F, &exportArray);
+		temporal.push_back(fM);
 	}
 	storage.release();
 }
@@ -417,22 +473,29 @@ bool CFeatureMap::load(const char* name)
 	storage["Visibility"] >> visibility;
 	storage["Times"] >> times;
 	storage["Temporal"] >> temporal;
+	bool is_cem;
+	storage["Is_CEM"] >> is_cem;
 	if (debug) printf("Loaded %ld features from %i images.\n",globalPositions.size(),visibility.cols);
 	if (temporal.empty() == false){
 		double importArray[MAX_TEMPORAL_MODEL_SIZE];
 		int currentPosition = 0;
-		temporalArray = (CTemporal**) calloc(visibility.rows,sizeof(CTemporal*));
-		for (int i = 0;i< globalDescriptors.rows;i++)
-		{
-			int len = temporal.at<double>(currentPosition++,0);
-			for (int j = 0;j<len;j++) importArray[j] = temporal.at<double>(currentPosition++,0);
-			ETemporalType model = (ETemporalType) importArray[0];
-			temporalArray[i] = spawnTemporalModel(model,86400,importArray[i],1); 
-			//char *aa = (char*)(&importArray[(int)importArray[2]+5]);
-			temporalArray[i]->importFromArray(importArray,len);
-			if (i == 5) temporalArray[i]->print(true);
-			//temporalArray[i]->update(importArray[1]);
-			temporalArray[i]->print(true);
+		int len = temporal.at<double>(currentPosition++,0);
+		for (int j = 0;j<len;j++) importArray[j] = temporal.at<double>(currentPosition++,0);
+		if (is_cem) {
+			cem_model = new CExpectation(0, 0);
+			cem_model->importFromArray(importArray, len);
+		} else {
+			temporalArray = (CTemporal**) calloc(visibility.rows,sizeof(CTemporal*));
+			for (int i = 0;i< globalDescriptors.rows;i++)
+			{
+				ETemporalType model = (ETemporalType) importArray[0];
+				temporalArray[i] = spawnTemporalModel(model,86400,importArray[i],1);
+				//char *aa = (char*)(&importArray[(int)importArray[2]+5]);
+				temporalArray[i]->importFromArray(importArray,len);
+				if (i == 5) temporalArray[i]->print(true);
+				//temporalArray[i]->update(importArray[1]);
+				temporalArray[i]->print(true);
+			}
 		}
 	}
 	storage.release(); 
