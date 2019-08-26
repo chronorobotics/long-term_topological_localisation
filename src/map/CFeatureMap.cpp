@@ -453,6 +453,7 @@ void CFeatureMap::save(const char* name)
 		temporal.push_back(len);
 		cv::Mat fM = cv::Mat(size, 1,CV_64F, &exportArray);
 		temporal.push_back(fM);
+		storage << "Temporal" << temporal;
 	}
 	storage.release();
 }
